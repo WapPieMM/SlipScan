@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <string name="firestore_database_id" translatable="false">ai-studio-android-slipnote-83dfa898-2690-4a6d-aef1-5efa73614e41</string>
+    <string name="recaptcha_site_key" translatable="false">6LdjLRguAAAAAFOtaYsAF-e_gyhe_uRqSI5lpr1L</string>
+</resources>

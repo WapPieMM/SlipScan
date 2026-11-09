@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Default-Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Reusable Hardened Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidCategory(cat) {
+      return cat is string && cat in ['FOOD', 'SHOPPING', 'TRANSPORT', 'BILLS', 'TRANSFER', 'ENTERTAINMENT', 'HEALTH', 'OTHER'];
+    }
+
+    function isValidExpense(data) {
+      return data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid &&
+             data.merchantName is string && data.merchantName.size() >= 1 && data.merchantName.size() <= 120 &&
+             data.bankName is string && data.bankName.size() >= 1 && data.bankName.size() <= 80 &&
+             (data.amount is int || data.amount is float) && data.amount > 0 && data.amount <= 100000000 &&
+             isValidCategory(data.category) &&
+             data.transactionDate is string && data.transactionDate.size() >= 1 && data.transactionDate.size() <= 50 &&
+             data.referenceNo is string && data.referenceNo.size() <= 100 &&
+             data.memo is string && data.memo.size() <= 300 &&
+             data.isFromSlip is bool;
+    }
+
+    function isValidUserBudget(data) {
+      return data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid &&
+             (data.monthlyLimit is int || data.monthlyLimit is float) &&
+             data.monthlyLimit >= 0 && data.monthlyLimit <= 100000000;
+    }
+
+    // 3. Expenses Collection Rules
+    match /expenses/{expenseId} {
+      allow get: if isSignedIn() && isValidId(expenseId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(expenseId) &&
+                       incoming().keys().hasAll(['userId', 'merchantName', 'bankName', 'amount', 'category', 'transactionDate', 'referenceNo', 'memo', 'isFromSlip', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'merchantName', 'bankName', 'amount', 'category', 'transactionDate', 'referenceNo', 'memo', 'isFromSlip', 'createdAt', 'updatedAt']) &&
+                       isValidExpense(incoming()) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time;
+
+      allow update: if isSignedIn() &&
+                       isValidId(expenseId) &&
+                       existing().userId == request.auth.uid &&
+                       isValidExpense(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['merchantName', 'bankName', 'amount', 'category', 'transactionDate', 'referenceNo', 'memo', 'isFromSlip', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(expenseId) && existing().userId == request.auth.uid;
+    }
+
+    // 4. User Budgets Collection Rules
+    match /budgets/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll(['userId', 'monthlyLimit', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'monthlyLimit', 'updatedAt']) &&
+                       isValidUserBudget(incoming()) &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time;
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       existing().userId == request.auth.uid &&
+                       isValidUserBudget(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['monthlyLimit', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+  }
+}

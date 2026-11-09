@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">SlipNote</string>
+    <string name="tagline">สแกนสลิปธนาคาร จดรายจ่ายอัตโนมัติด้วย AI</string>
+    <string name="sign_in_google">เข้าสู่ระบบด้วย Google</string>
+    <string name="sign_out">ออกจากระบบ</string>
+    <string name="tab_home">หน้าแรก</string>
+    <string name="tab_scan">ดึงรูปสลิป</string>
+    <string name="tab_analytics">สรุปงบ</string>
+    <string name="pick_slip_gallery">เลือกรูปสลิปจากอัลบั้ม (เลือกได้หลายรูป)</string>
+    <string name="try_sample_slip">ลองทดสอบด้วยสลิปตัวอย่าง</string>
+    <string name="add_manual_expense">จดรายจ่ายเอง</string>
+    <string name="monthly_budget_title">งบประมาณรายเดือน</string>
+    <string name="set_budget">ตั้งงบรายเดือน</string>
+    <string name="save_expense">บันทึกรายจ่าย</string>
+    <string name="cancel">ยกเลิก</string>
+    <string name="delete">ลบรายการ</string>
+    <string name="search_hint">ค้นหาชื่อร้าน ธนาคาร หรือบันทึกช่วยจำ...</string>
+</resources>

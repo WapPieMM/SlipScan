@@ -1,0 +1,110 @@
+{
+  "entities": {
+    "Expense": {
+      "title": "Expense",
+      "description": "An expense record extracted from a bank transfer slip or entered manually by an authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the authenticated user who owns this expense record."
+        },
+        "merchantName": {
+          "type": "string",
+          "description": "The recipient or merchant name on the slip (1 to 120 characters)."
+        },
+        "bankName": {
+          "type": "string",
+          "description": "The bank or payment channel name (1 to 80 characters)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The expense amount in THB (> 0 and <= 100000000)."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["FOOD", "SHOPPING", "TRANSPORT", "BILLS", "TRANSFER", "ENTERTAINMENT", "HEALTH", "OTHER"],
+          "description": "The expense category."
+        },
+        "transactionDate": {
+          "type": "string",
+          "description": "Formatted transaction date and time from the slip (1 to 50 characters)."
+        },
+        "referenceNo": {
+          "type": "string",
+          "description": "Bank transaction reference code from the slip (0 to 100 characters)."
+        },
+        "memo": {
+          "type": "string",
+          "description": "Optional note or AI summary for the transaction (0 to 300 characters)."
+        },
+        "isFromSlip": {
+          "type": "boolean",
+          "description": "Whether this expense was extracted from a bank slip image."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the record was created via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the record was last updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "merchantName",
+        "bankName",
+        "amount",
+        "category",
+        "transactionDate",
+        "referenceNo",
+        "memo",
+        "isFromSlip",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserBudget": {
+      "title": "UserBudget",
+      "description": "Monthly spending budget setting for an authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the authenticated user."
+        },
+        "monthlyLimit": {
+          "type": "number",
+          "description": "Monthly budget target in THB (>= 0 and <= 100000000)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the budget was last updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "monthlyLimit",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/expenses/{expenseId}": {
+      "schema": {
+        "$ref": "#/entities/Expense"
+      },
+      "description": "Stores user expense records extracted from bank slips or entered manually."
+    },
+    "/budgets/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserBudget"
+      },
+      "description": "Stores per-user monthly budget target keyed by userId."
+    }
+  }
+}
